@@ -2,9 +2,9 @@ import gym
 import torch
 
 from copy import deepcopy
-from .Memory import ReplayMemory
-from .QNets import DQNContinuous
-from .OfflinePolicies import SquashedGaussianPolicy
+from .memory import ReplayMemory
+from .qnets import DQNContinuous
+from .offline_policies import SquashedGaussianPolicy
 
 # if gpu is to be used
 if torch.cuda.is_available():
