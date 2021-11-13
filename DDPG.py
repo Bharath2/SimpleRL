@@ -49,10 +49,8 @@ def DDPG_Step(batch_size = 64):
       expected_critic_values = batch.rewards + gamma * next_critic_values * (1 - batch.dones)
     critic.train(batch.states, batch.actions, expected_critic_values)
    #---------------------actor training----------------------------------
-    critic.requires_grad(False)
     critic_value = -critic(batch.states, actor(batch.states)).mean()
     actor.train(actor_loss)
-    critic.requires_grad(True)
    #----------------soft update target critic-------------------------------
     soft_update(target_actor, actor, tau)
     soft_update(target_critic, critic, tau)
