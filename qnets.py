@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.nn import functional as F
 
 from utils import *
 
@@ -45,6 +46,55 @@ class DQNContinuous(nn.Module):
         for param in self.parameters():
             param.requires_grad = boolean
 
+# import jax
+# import jax.numpy as jnp
+# import flax.linen as nn
+
+# class FlaxQNetContinuous(nn.Module):
+#     '''Single Q-Network implemented in JAX/Flax'''
+#     action_dim: int
+    
+#     @nn.compact
+#     def __call__(self, states, actions):
+#         x1 = nn.Dense(64)(states)
+#         x1 = nn.relu(x1)
+        
+#         x2 = nn.Dense(32)(actions) 
+#         x2 = nn.relu(x2)
+        
+#         x = jnp.concatenate([x1, x2], axis=-1)
+#         x = nn.Dense(256)(x)
+#         x = nn.relu(x)
+#         x = nn.Dense(1)(x)
+#         return x
+
+# class FlaxDQNContinuous(nn.Module):
+#     '''Double Q-Network Critic implemented in JAX/Flax'''
+#     action_dim: int
+    
+#     def setup(self):
+#         self.q1 = FlaxQNetContinuous(self.action_dim)
+#         self.q2 = FlaxQNetContinuous(self.action_dim)
+    
+#     def __call__(self, states, actions):
+#         q1 = self.q1(states, actions)
+#         q2 = self.q2(states, actions)
+#         return jnp.minimum(q1, q2)
+    
+#     def train_step(self, params, states, actions, expected_values, optimizer):
+#         def loss_fn(params):
+#             q1 = self.q1.apply({'params': params['q1']}, states, actions)
+#             q2 = self.q2.apply({'params': params['q2']}, states, actions)
+#             loss1 = jnp.mean((q1 - expected_values) ** 2)
+#             loss2 = jnp.mean((q2 - expected_values) ** 2)
+#             return loss1 + loss2
+            
+#         grad_fn = jax.value_and_grad(loss_fn)
+#         loss, grads = grad_fn(params)
+#         updates, optimizer = optimizer.update(grads, optimizer)
+#         params = optax.apply_updates(params, updates)
+#         return params, optimizer, loss
+
 
 class QNetDiscrete(nn.Module):
     def __init__(self, state_dim, action_dim, learning_rate, extractor = None):
@@ -73,7 +123,7 @@ class QNetDiscrete(nn.Module):
         loss = F.smooth_l1_loss(expected_values, Q_values)
         optimize(self.parameters(), self.optimizer, loss)
 
-    def choose_action(self, state, eplison = 0.2):
+    def choose_action(self, state, epsilon = 0.2):
         if np.random.uniform() < epsilon:
             return np.random.randint(self.action_dim)
         else:
@@ -104,7 +154,7 @@ class DQNDiscrete(nn.Module):
         for param in self.parameters():
             param.requires_grad = boolean
 
-    def choose_action(self, state, eplison = 0.2):
+    def choose_action(self, state, epsilon = 0.2):
         if np.random.uniform() < epsilon:
             return np.random.randint(self.action_dim)
         else:

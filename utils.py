@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.nn.utils import clip_grad_value_
-
+import numpy as np
 
 def T(x):
     '''
@@ -10,18 +10,19 @@ def T(x):
     return torch.as_tensor(x).unsqueeze(0)
 
 
-def Sequential(dims, activation = nn.ReLU):
+def Sequential(dims, activation=nn.ReLU):
     '''
-    Returns sequential model from specified by the dims list
+    Returns sequential model specified by the dims list
     '''
-    if len(dims) < 2: return None
+    if len(dims) < 2:
+        return None
 
     layers = [nn.Linear(dims[0], dims[1])]
     for i in range(1, len(dims) - 1):
         layers.append(activation())
         layers.append(nn.Linear(dims[i], dims[i + 1]))
 
-    return nn.sequential(*layers)
+    return nn.Sequential(*layers)  # Fixed capitalization of Sequential
 
 
 class OUNoise:
@@ -34,12 +35,12 @@ class OUNoise:
 
     def __call__(self):
         x = self.x_prev + self.theta * (self.mu - self.x_prev) * self.dt + \
-                self.sigma * np.sqrt(self.dt) * np.random.normal(size=self.mu.shape)
+            self.sigma * np.sqrt(self.dt) * np.random.normal(size=self.mu.shape)
         self.x_prev = x
         return x
 
 
-def optimize(parameters, optimizer, loss, clip_value = 1):
+def optimize(parameters, optimizer, loss, clip_value=1):
     '''
     Single optimize step
     '''
@@ -50,5 +51,8 @@ def optimize(parameters, optimizer, loss, clip_value = 1):
 
 
 def soft_update(target, source, tau):
-	for a, b in zip(target.parameters(), source.parameters()):
-		a.data.copy_(a.data * (1.0 - tau) + b.data * tau)
+    '''
+    Soft update target network parameters using source network
+    '''
+    for target_param, source_param in zip(target.parameters(), source.parameters()):
+        target_param.data.copy_(target_param.data * (1.0 - tau) + source_param.data * tau)
